@@ -42,9 +42,13 @@ pipeline {
                 """
             }
         }
-        stage('Deploy to Kubernetes') {       
-            steps {
-                sh 'kubectl apply -f k8s/'
+          stage('Deploy to K8s') {
+    steps {
+        sh 'kubectl apply -f k8s/namespace.yaml'
+        sh 'kubectl wait --for=condition=Active namespace/ecommerce --timeout=30s'
+        sh 'kubectl apply -f k8s/'
+    }
+}
             }
         }
     }                                    
