@@ -16,36 +16,42 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo "Building Docker image: ${DOCKERHUB_REPO}:${IMAGE_TAG}"
-                sh """
-                    docker build -t ${DOCKERHUB_REPO}:${IMAGE_TAG} .
-                    docker tag  ${DOCKERHUB_REPO}:${IMAGE_TAG} ${DOCKERHUB_REPO}:latest
-                """
+                sh '''
+                    docker build -t $DOCKERHUB_REPO:$IMAGE_TAG .
+                    docker tag  $DOCKERHUB_REPO:$IMAGE_TAG $DOCKERHUB_REPO:latest
+                '''
             }
         }
         stage('Push to DockerHub') {
             steps {
                 echo 'Pushing image to DockerHub...'
-                sh """
-                    echo "${DOCKERHUB_CREDENTIALS_PSW}" | docker login -u "${DOCKERHUB_CREDENTIALS_USR}" --password-stdin
-                    docker push ${DOCKERHUB_REPO}:${IMAGE_TAG}
-                    docker push ${DOCKERHUB_REPO}:latest
-                """
+                // withCredentials re-masks the secret at shell level
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKER_USR',
+                    passwordVariable: 'DOCKER_PSW'
+                )]) {
+                    sh '''
+                        echo "$DOCKER_PSW" | docker login -u "$DOCKER_USR" --password-stdin
+                        docker push $DOCKERHUB_REPO:$IMAGE_TAG
+                        docker push $DOCKERHUB_REPO:latest
+                    '''
+                }
             }
         }
         stage('Cleanup') {
             steps {
                 echo 'Removing local images to free disk space...'
-                sh """
-                    docker rmi ${DOCKERHUB_REPO}:${IMAGE_TAG} || true
-                    docker rmi ${DOCKERHUB_REPO}:latest        || true
+                sh '''
+                    docker rmi $DOCKERHUB_REPO:$IMAGE_TAG || true
+                    docker rmi $DOCKERHUB_REPO:latest     || true
                     docker logout
-                """
+                '''
             }
         }
         stage('Deploy to K8s') {
             steps {
                 sh 'kubectl apply -f k8s/namespace.yaml'
-                sh 'kubectl wait --for=condition=Active namespace/ecommerce --timeout=30s'
                 sh 'kubectl apply -f k8s/'
             }
         }
