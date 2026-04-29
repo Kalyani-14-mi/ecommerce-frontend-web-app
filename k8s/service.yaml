@@ -14,4 +14,4 @@ spec:
       protocol: TCP
       port: 80              # external port
       targetPort: 4200
-      nodeport: 30007            # container port
+      nodePort: 30007            # container port
