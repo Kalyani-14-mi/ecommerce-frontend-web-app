@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ecommerce-frontend
-  namespace: default
+  namespace: ecommerce
   labels:
     app: ecommerce-frontend
 spec:
@@ -22,17 +22,17 @@ spec:
     spec:
       containers:
         - name: ecommerce-frontend
-          image: xennit/ecommerce-frontend-web-app:latest   
+          image: xennit/ecommerce-frontend-web-app:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 4200
-         resources:
-           requests:
-           cpu: "250m"
-           memory: "512Mi"
-           limits:
-             cpu: "1000m"
-             memory: "1Gi"      
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
           livenessProbe:
             httpGet:
               path: /
