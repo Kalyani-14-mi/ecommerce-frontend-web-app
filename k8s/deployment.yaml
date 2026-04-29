@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ecommerce-frontend
-  namespace: ecommerce
+  namespace: default
   labels:
     app: ecommerce-frontend
 spec:
