@@ -2,15 +2,16 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ecommerce-frontend-svc
-  namespace: ecommerce
+  namespace: default
   labels:
     app: ecommerce-frontend
 spec:
-  type: LoadBalancer        # exposes via AWS ELB; change to NodePort if no LB
+  type: NodePort        # exposes via AWS ELB; change to NodePort if no LB
   selector:
     app: ecommerce-frontend
   ports:
     - name: http
       protocol: TCP
       port: 80              # external port
-      targetPort: 4200      # container port
+      targetPort: 4200
+      nodeport: 30007            # container port
