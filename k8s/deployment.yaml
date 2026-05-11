@@ -2,19 +2,13 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ecommerce-frontend
-  namespace: ecommerce
   labels:
     app: ecommerce-frontend
 spec:
-  replicas: 2
+  replicas: 1          # reduce to 1 until stable; you have 4 pods fighting for memory
   selector:
     matchLabels:
       app: ecommerce-frontend
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
   template:
     metadata:
       labels:
@@ -23,26 +17,28 @@ spec:
       containers:
         - name: ecommerce-frontend
           image: xennit/ecommerce-frontend-web-app:latest
-          imagePullPolicy: Always
           ports:
             - containerPort: 4200
           resources:
             requests:
+              memory: "256Mi"
               cpu: "250m"
-              memory: "512Mi"
             limits:
-              cpu: "1000m"
-              memory: "1Gi"
+              memory: "1Gi"      # raised from 512Mi — Angular/Node needs more headroom
+              cpu: "500m"
           livenessProbe:
             httpGet:
               path: /
               port: 4200
-            initialDelaySeconds: 30
-            periodSeconds: 10
+            initialDelaySeconds: 90   # was 30s — give the app time to actually start
+            periodSeconds: 15
+            timeoutSeconds: 5         # was 1s — too tight for a slow response
+            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /
               port: 4200
-            initialDelaySeconds: 15
-            periodSeconds: 5
-    
+            initialDelaySeconds: 60   # was 15s
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
